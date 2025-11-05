@@ -7,381 +7,557 @@
     <script src="https://unpkg.com/list.js@2.3.1/dist/list.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; margin: 0; padding: 20px; background-color: #f4f4f9; color: #333; }
-        #youtube-list-app { max-width: 900px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
-        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-bottom: 20px; }
-        .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; align-items: center; }
-        .search { padding: 10px; border: 1px solid #ccc; border-radius: 4px; flex-grow: 1; min-width: 250px; font-size: 16px; }
-        .sort-btn { background-color: #3498db; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; transition: background-color 0.3s; font-size: 14px; }
-        .sort-btn:hover { background-color: #2980b9; }
-        .category-item { margin-bottom: 15px; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; }
-        .category-header { background-color: #ecf0f1; padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .category-header h2 { margin: 0; font-size: 1.2em; color: #2c3e50; }
-        .category-toggle { font-size: 1.5em; line-height: 1; transition: transform 0.3s; }
-        .category-item.collapsed .category-toggle { transform: rotate(-90deg); }
-        .category-item.hidden { display: none; }
-        .list { list-style: none; padding: 0; margin: 0; transition: max-height 0.4s ease-out, opacity 0.4s ease-out; background-color: #fff; }
-        .category-item.collapsed .list { display: none; }
-        .list-item { padding: 10px 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        .list-item:last-child { border-bottom: none; }
-        .list-title a { color: #3498db; text-decoration: none; font-weight: 500; transition: color 0.3s; }
-        .list-title a:hover { color: #e74c3c; }
-        .list-date { color: #7f8c8d; font-size: 0.9em; flex-shrink: 0; margin-left: 20px; }
-        /* List.js uses 'display: none' for filtered items, we manage the parent category visibility */
+        /* BAREVNÉ ZMĚNY A ZÁKLADNÍ STYLING */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            margin: 0;
+            padding: 20px; 
+            background-color: #f7f7f7; /* Světlejší pozadí */
+            color: #333; 
+        }
+        #youtube-list-app { 
+            max-width: 960px; /* Mírně rozšířeno */
+            margin: 0 auto; 
+            background: #fff; 
+            padding: 30px; /* Více vnitřního prostoru */
+            border-radius: 12px; /* Zaoblenější rohy */
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08); /* Jemnější stín */
+        }
+        h1 { 
+            color: #2c3e50; 
+            border-bottom: 2px solid #1abc9c; /* Nová akcentní barva */
+            padding-bottom: 15px; 
+            margin-bottom: 30px; 
+            font-size: 1.8em;
+        }
+        .controls { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 15px; /* Větší mezery */
+            margin-bottom: 30px;
+            align-items: center; 
+        }
+        .search { 
+            padding: 12px; 
+            border: 1px solid #ddd; 
+            border-radius: 6px; 
+            flex-grow: 1; 
+            min-width: 250px; 
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        .search:focus {
+            border-color: #1abc9c; /* Barva při focusu */
+            outline: none;
+        }
+        .sort-btn { 
+            background-color: #1abc9c; /* Primární tyrkysová */
+            color: white; 
+            border: none; 
+            padding: 12px 20px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            transition: background-color 0.3s, transform 0.1s; 
+            font-size: 14px; 
+            font-weight: 600;
+        }
+        .sort-btn:hover { 
+            background-color: #16a085; /* Tmavší odstín tyrkysové */
+            transform: translateY(-1px);
+        }
+        
+        /* STYLING KATEGORIÍ */
+        .category-item { 
+            margin-bottom: 20px; 
+            border: 1px solid #e0e0e0; 
+            border-radius: 8px; 
+            overflow: hidden; 
+        }
+        .category-header { 
+            background-color: #e9f7f6; /* Světle tyrkysové pozadí hlavičky */
+            padding: 15px; 
+            cursor: pointer; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .category-header h2 { 
+            margin: 0; 
+            font-size: 1.3em; 
+            color: #2c3e50; 
+            font-weight: 700;
+        }
+        .category-toggle { 
+            font-size: 1.5em; 
+            line-height: 1; 
+            transition: transform 0.3s; 
+            color: #1abc9c;
+        }
+        .category-item.collapsed .category-toggle { 
+            transform: rotate(-90deg); 
+        }
+        .category-item.hidden { 
+            display: none; 
+        }
+        .list { 
+            list-style: none; 
+            padding: 0; 
+            margin: 0; 
+            background-color: #fff; 
+        }
+        .category-item.collapsed .list-container { 
+            display: none; 
+        }
+        
+        /* STYLING POLOŽEK SEZNAMU (LIST ITEMS) S NÁHLEDEM */
+        .list-item { 
+            display: flex; 
+            align-items: center;
+            padding: 15px; 
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .list-item:last-child { 
+            border-bottom: none; 
+        }
+        
+        .list-link-wrapper {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            text-decoration: none;
+            color: inherit;
+            transition: background-color 0.2s;
+        }
+        .list-link-wrapper:hover {
+            background-color: #f9f9f9;
+        }
+
+        .list-thumbnail-container {
+            flex-shrink: 0;
+            width: 80px; /* Pevná šířka náhledu */
+            height: 45px; /* Pevná výška náhledu (16:9) */
+            margin-right: 15px;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .list-thumbnail {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .list-content {
+            display: flex;
+            flex-grow: 1;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .list-title a, .list-title { /* Změna: nyní je odkaz celá položka, ale pro List.js to ponecháme jako span/div */
+            color: #333; 
+            text-decoration: none; 
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        .list-link-wrapper:hover .list-title { 
+            color: #1abc9c; /* Zvýraznění názvu při hoveru */
+        }
+        .list-date { 
+            color: #7f8c8d; 
+            font-size: 0.9em; 
+            flex-shrink: 0; 
+            margin-left: 20px;
+        } 
+
+        /* Responsivní úpravy pro menší displeje */
+        @media (max-width: 600px) {
+            #youtube-list-app {
+                padding: 15px;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .list-thumbnail-container {
+                width: 60px;
+                height: 33px;
+            }
+            .list-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .list-date {
+                margin-left: 0;
+                margin-top: 5px;
+                font-size: 0.8em;
+            }
+        }
     </style>
-</head>
-<body>
+</head> 
+<body> 
     <div id="youtube-list-app">
-        <h1>YouTube Odkazy: Hierarchický Seznam</h1>
-        <div class="controls">
-            <input type="search" class="search" placeholder="Filtrovat podle názvu, data nebo autora..."/>
-            <button class="sort-btn" data-sort="list-title" data-order="asc">
-                Řadit videa (Název A-Z)
-            </button>
-            <button class="sort-btn" data-sort="list-date-raw" data-order="desc">
-                Řadit videa (Datum sestupně)
-            </button>
-            <button class="sort-btn" id="sort-category-name-btn" data-order="asc">
-                Řadit skupiny (Název A-Z)
-            </button>
-        </div>
-        <div id="category-container">
-            </div>
-    </div>
-    <script>
-        // DATA: Strukturování dat poskytnutých uživatelem do požadované hierarchie.
-        // Kategorie L1 (group_name) jsou určeny na základě hlavních interpretů/témat.
-        const rawData = [
-            { title: "2008-07-24 Wolfgang Saus a Hradišťan (Audio)", url: "https://youtu.be/HODbKG16eMI" },
-            { title: "2008-07-23 David Evans (Audio)", url: "https://youtu.be/tt9X89F0ZC4" },
-            { title: "2008-07-23 Hazmat Modine (Audio)", url: "https://youtu.be/eThuN_BzMF4" },
-            { title: "2008-07-23 Blues Session (Audio)", url: "https://youtu.be/vDhZctcwfmM" },
-            { title: "2008-07-22 Helene Blum & Harald Haugaard (Audio)", url: "https://youtu.be/0ZbBvyQvdeE" },
-            { title: "2017-07-28 Vladimír Mišík", url: "https://youtu.be/_VisQCNHDJM" },
-            { title: "2008-07-22 Druhá tráva (Audio)", url: "https://youtu.be/pUp1vPVCMJY" },
-            { title: "2022-07-29 Hana a Petr Ulrychovi a Javory (Audio)", url: "https://youtu.be/7Ix356oKr9c" },
-            { title: "2016-07-28 German Lopéz a Antonio Toledo", url: "https://youtu.be/RR3nDbzSTVA" },
-            { title: "2015-07-29 Dancas Ocultas", url: "https://youtu.be/2ngxlbE3nvk" },
-            { title: "2008-07-22 Tim Eriksen (Audio)", url: "https://youtu.be/IbaDHBrlCGY" },
-            { title: "2023-07-23 Mirek Kemel a hosté (Audio)", url: "https://youtu.be/L_qr5KtD1n4" },
-            { title: "2010-07-26 Žofie Kabelková (Audio)", url: "https://youtu.be/LoZGM9xyVkw" },
-            { title: "2024-07-31 Catrin Finch & Aoife Ni Brhiain", url: "https://youtu.be/AGGgfyFuJQU" },
-            { title: "2010-07-31 Jumping Drums (Audio)", url: "https://youtu.be/OHoT5DiOzJc" },
-            { title: "2015-07-29 AKA Trio", url: "https://youtu.be/Vmbl7s0r_RE" },
-            { title: "2008-07-21 Lucia Pulido a Marta Töpferová (Audio)", url: "https://youtu.be/WxBzWIDcowE" },
-            { title: "2008-07-21 Zuzana Novak (Audio)", url: "https://youtu.be/MpHdTOEoXsE" },
-            { title: "2008-07-21 Bashavel a Slávka Horvátová (Audio)", url: "https://youtu.be/urbTmsyOdp0" },
-            { title: "2008-07-20 Camile O´Sullivan (Audio)", url: "https://youtu.be/b-3dMEh5d1o" },
-            { title: "2008-07-20 Sergente Pepere (Audio)", url: "https://youtu.be/HonhegnXEfQ" },
-            { title: "2000 - O poklad Anežky České z Náměště nad Oslavou", url: "https://youtu.be/IR88sRFPZBg" },
-            { title: "1998 Krajina s Náměští nad Oslavou", url: "https://youtu.be/cOd4fjrYNS8" },
-            { title: "2007-07-30 Jablkoň & Galumpha - Popí rondo", url: "https://youtu.be/47pfx2BrmCY" },
-            { title: "2008-07-20 Iyasa (Audio)", url: "https://youtu.be/WEBjE2CIVtw" },
-            { title: "2008-07-19 Majorstuen", url: "https://youtu.be/pyDnVZWt8eA" },
-            { title: "2010-07-31 Hradišťan a Dizu Plaatjies", url: "https://youtu.be/Ob7ACKuvzbI" },
-            { title: "2016-07-26 Vladimír Merta & Jan Hrubý & Hromosvod (Audio)", url: "https://youtu.be/3eWwok_l8HY" },
-            { title: "2007-07-25 Interference (Audio)", url: "https://youtu.be/_AepJtOQuvo" },
-            { title: "2013-07-22 Zrní (Audio)", url: "https://youtu.be/DNhOoV-Ugf8" },
-            { title: "2024-08-03 Josef Strubl: Český svaz žen v akci", url: "https://youtu.be/Yg6Zlpo0ZO0" },
-            { title: "2023-08-27 Zlatka a Hanuš Lamrovi Vernisáž výstavy, Galerie 12, Náměšť nad Oslavou", url: "https://youtu.be/usOcrlB8TtU" },
-            { title: "2023-07-27 4 Lamři, 4 cesty - Galerie 12, Náměšť nad Oslavou", url: "https://youtu.be/tzHbJUUL9hE" },
-            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka 12 - Otče ohně", url: "https://youtu.be/cHLVG_9rAMM" },
-            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka 13 - Havrani", url: "https://youtu.be/GO7DJHys-ws" },
-            { title: "2019 08 03 Jarda Svoboda a Přátelé člověka 11 - Ismael", url: "https://youtu.be/QxK8WeRKVjk" },
-            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka 09 - Milovaný syn", url: "https://youtu.be/-oGZF7yji2g" },
-            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka 10 - Tak to mám rád", url: "https://youtu.be/HN5UTXnbcmw" },
-            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka 08 - Moje volba", url: "https://youtu.be/9FFrbAog4L8" },
-            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka 06 - Pozvedám své oči k horám", url: "https://youtu.be/skCrKza1SlY" },
-            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka 07 - Strach", url: "https://youtu.be/BKmMFoQJnlM" },
-            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka 05 - Slovo o slově", url: "https://youtu.be/9UaJwRoeK3o" },
-            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka 03-Jdu krajinou", url: "https://youtu.be/92Av1B_o0Ak" },
-            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka 04 -V hořícím keři", url: "https://youtu.be/XDQ5JHcNvDg" },
-            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka 02-Dej mi Bože dobrou ženu", url: "https://youtu.be/QvgSukVTZfE" },
-            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka 01-V jejích šlépějích", url: "https://youtu.be/QitHvA8EcC4" },
-            { title: "2025-08-17 ALEŠ SVOBODA - vernisáž SIXTYSIX - Galerie 12 - Náměšť nad Oslavou", url: "https://youtu.be/iYtbC6YlcTg" },
-            { title: "2021-08-18 František Skála - Galerie 12, vernisáž výstavy", url: "https://youtu.be/ERZNKJdb2Yg" },
-            { title: "2025-06-29 JAN ŠVANKMAJER vernisáž výstavy Galerie 12 Náměšť nad Oslavou", url: "https://youtu.be/GtiErQqmqyQ" },
-            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka (Audio)", url: "https://youtu.be/zRjGhMs_c_w" },
-            { title: "2023-07-18 Jan Lamr: Na dotek - Vernisáž výstavy Galerie 12", url: "https://youtu.be/vOhb--GR1s0" },
-            { title: "2018-08-04 Zvíře jménem Podzim (Audio)", url: "https://youtu.be/B-2dzlZ1uc4" },
-            { title: "2018-08-04 Zvíře jménem Podzim (Audio)", url: "https://youtu.be/78u3QENnrrI" },
-            { title: "2008-07-24 Hradišťan", url: "https://youtu.be/CGAkbv8ysqE" },
-            { title: "2016-07-28 Michal Prokop - Luboš Andršt - Jan Hrubý (Audio)", url: "https://youtu.be/9y1NC6gcfCw" },
-            { title: "2010-07-29 Martina Trchová (Audio)", url: "https://youtu.be/gAOBI6FK-ZA" },
-            { title: "2022-07-26 Vladimír Merta Trio", url: "https://youtu.be/G3okXtCYmfU" },
-            { title: "2018-08-01 Spirituál kvintet 06-Za všechno může lhaní (Audio)", url: "https://youtu.be/e70nH8okquo" },
-            { title: "2018-08-01 Spirituál kvintet 16-Pocestný (Audio)", url: "https://youtu.be/YdZ4eLn5290" },
-            { title: "2018-08-01 Spirituál kvintet 15-Jednou budem dál (Audio)", url: "https://youtu.be/SUbNc64xau4" },
-            { title: "2018-08-01 Spirituál kvintet 14-Krásný rána (Audio)", url: "https://youtu.be/D9VyR0ACXXc" },
-            { title: "2018-08-01 Spirituál kvintet 13-Vlk a beránek (Audio)", url: "https://youtu.be/UQaLoWYpCMU" },
-            { title: "2018-08-01 Spirituál kvintet 12-Růžička (Audio)", url: "https://youtu.be/sUo97J0afu0" },
-            { title: "2018-08-01 Spirituál kvintet 11-Starý příběh (Audio)", url: "https://youtu.be/TgKJ8erkTa4" },
-            { title: "2018-08-01 Spirituál kvintet 10-Širý proud (Audio)", url: "https://youtu.be/U39o-KD-1j8" },
-            { title: "2018-08-01 Spirituál kvintet 09-Batalion (Audio)", url: "https://youtu.be/ZWtYbul31DY" },
-            { title: "2018-08-01 Spirituál kvintet 08-Žízeň (Audio)", url: "https://youtu.be/Mff6APjMwQo" },
-            { title: "2018-08-01 Spirituál kvintet 07-Zelené pláně (Audio)", url: "https://youtu.be/UftFgZWAinU" },
-            { title: "2018-08-01 Spirituál kvintet 01-Svět s náma houpá (Audio)", url: "https://youtu.be/CFgsiZ-UaXU" },
-            { title: "2018-08-01 Spirituál kvintet 02-Do ráje nevede most (Audio)", url: "https://youtu.be/MVHavMtn1eY" },
-            { title: "2018-08-01 Spirituál kvintet 03-Babylonská věž (Audio)", url: "https://youtu.be/28WC-3yG3Xw" },
-            { title: "2018-08-01 Spirituál kvintet 04-Tak jen pojď (Audio)", url: "https://youtu.be/qAjYFikiuxQ" },
-            { title: "2018-08-01 Spirituál kvintet 05 Zahrady v Moorlough Shore Audio", url: "https://youtu.be/C_oCsvhI-dg" },
-            { title: "2025-07-30 TOPOL - Jen to smysl má", url: "https://youtu.be/Lm8QjzioquU" },
-            { title: "2021-07-27 Radim Zenkl a Ondra Kozák", url: "https://youtu.be/kGVHR3VX7w0" },
-            { title: "2025-07-29 Zahranice 10-Delfín - Premiéra", url: "https://youtu.be/G6z9i4Gm8U4" },
-            { title: "2010-07-30 Docuku (Audio)", url: "https://youtu.be/96k7CieQ4yw" },
-            { title: "2020-07-30 Iva Bittová & Babačka & Ivo Viktorín & Vladimír Václavek", url: "https://youtu.be/Znlc7_jnUJs" },
-            { title: "2014-08-02 Traband - Sáro (Audio)", url: "https://youtu.be/6l6YkyB1fZU" },
-            { title: "2014-08-02 Traband - Přijíždí posel (Audio)", url: "https://youtu.be/pzhWQWemh24" },
-            { title: "2014-08-02 Traband - Tenhleten den (Audio)", url: "https://youtu.be/6jysEYot9y4" },
-            { title: "2014-08-02 Traband - Černej pasažér (Audio)", url: "https://youtu.be/7Vq4Xm8uw2k" },
-            { title: "2014-08-02 Traband - Indiáni ve městě (Audio)", url: "https://youtu.be/OmsWlznh9XA" },
-            { title: "2014-08-02 Traband - Tichý muž (Audio)", url: "https://youtu.be/glIuZ_duS4U" },
-            { title: "2014-08-02 Traband - Pokaždé, když přicházíš (Audio)", url: "https://youtu.be/yPyOgGEdj-g" },
-            { title: "2014-08-02 Traband - Do ticha (Audio)", url: "https://youtu.be/QFoIDms_xp0" },
-            { title: "2014-08-02 Traband - Černý kafe (Audio)", url: "https://youtu.be/dg2kCIyu5B8" },
-            { title: "2014-08-02 Traband - Mluv se mnou, miláčku", url: "https://youtu.be/t42O7B8fs_Y" },
-            { title: "2014-08-02 Traband - Kantorovy varhany", url: "https://youtu.be/UxjBMdq8t_s" },
-            { title: "2014-08 02 Traband - Kabát z roku 66 (Audio)", url: "https://youtu.be/nfhiRXA8l-c" },
-            { title: "2014-08-02 Traband - Marie! (Audio)", url: "https://youtu.be/psjHJ5gjjj8" },
-            { title: "2013-07-21 Ukulele orchestra jako Brno", url: "https://youtu.be/yf80kIxyxlo" },
-            { title: "2018-08-01 Spirituál kvintet (Audio)", url: "https://youtu.be/Q13D4hbqBzQ" },
-            { title: "2015-07-27 Marián Varga (Audio)", url: "https://youtu.be/IuhwB7mOG1g" },
-            { title: "2014-07-31 Bezobratři (Audio)", url: "https://youtu.be/AZ8AmmjuQLE" },
-            { title: "2017-07-27 Kateřina Garcia a Malina Brothers", url: "https://youtu.be/K-T1duqJLsA" },
-            { title: "2021-07-27 Radim Zenkl & Ondřej Kozák", url: "https://youtu.be/xyepCBoKjQU" },
-            { title: "2014-08-02 Traband + Mirek Kemel (Audio)", url: "https://youtu.be/gbkYugfYo9Y" },
-            { title: "Zbraslav a Švédové", url: "https://youtu.be/G4jOWJ98NyQ" },
-            { title: "2015-07-28 Iva Bittová a Clarinet Factory", url: "https://youtu.be/7lNWB5zIb-8" },
-            { title: "2017-07-27 Jiří Slavík: Mateřština", url: "https://youtu.be/pqvetdTYGgc" },
-            { title: "2025-07-30 Blondýna & Cicvárek 11-Odvaha", url: "https://youtu.be/qx4IvylfFVM" },
-            { title: "2025-07-30 Blondýna & Cicvárek 13-Ostrovní romance", url: "https://youtu.be/ecZ86oOfv0c" },
-            { title: "2025-07-30 Blondýna & Cicvárek 14-Balada o poslední bouři", url: "https://youtu.be/fMfiiqwfdns" },
-            { title: "2025-07-30 Blondýna & Cicvárek 08-Viktorka", url: "https://youtu.be/mRahWI2jssA" },
-            { title: "2025-07-30 Blondýna & Cicvárek 01-Volej, volej, volej, volej, volej!", url: "https://youtu.be/3721VqJVK9k" },
-            { title: "2025-07-30 Blondýna & Cicvárek 10-Vítr", url: "https://youtu.be/yHyey3ZxkvY" },
-            { title: "2025-07-30 Blondýna & Cicvárek 09-Klavír ve křoví", url: "https://youtu.be/F9vZ81R15qQ" },
-            { title: "2025-07-30 Blondýna & Cicvárek 07-Na cestě", url: "https://youtu.be/5pvJQw5RScw" },
-            { title: "2025-07-30 Blondýna & Cicvárek 06-Šípková Růženka", url: "https://youtu.be/qGKDLFpgh6s" },
-            { title: "2025-07-30 Blondýna & Cicvárek 05-Lokálka", url: "https://youtu.be/Y-qOUXbRp9o" },
-            { title: "2025-07-30 Blondýna & Cicvárek 04-Žbluňk", url: "https://youtu.be/QOQ7CiRqRfQ" },
-            { title: "2025-07-30 Blondýna & Cicvárek 03-Banánový blues", url: "https://youtu.be/tB3Dnpk1lww" },
-            { title: "2025-07-30 Blondýna & Cicvárek 02-Dřív než", url: "https://youtu.be/j_pTiVZ3ls4" },
-            { title: "2025-07-30 Blondýna & Cicvárek 01-Volej, volej, volej, volej, volej!", url: "https://youtu.be/EVCKQRy8OLE" },
-            { title: "2025-07-30 Blondýna & Cicvárek 12-Holí na pankáče", url: "https://youtu.be/R2bBYwpezsw" },
-            { title: "2025-07-30 Blondýna & Cicvárek 15-Mercedes Benz", url: "https://youtu.be/FeRPQi9sUMM" },
-            { title: "2022-07-26 Vladmír Merta Trio", url: "https://youtu.be/fmezQRR4SuE" },
-            { title: "2026-07-25 Radim Hladík a Blue Effect (Audio)", url: "https://youtu.be/hf_Ra4ugT1E" },
-            { title: "2016-07-25 Radim Hladík a Blue Effect (Audio)", url: "https://youtu.be/8F8kQlpsZRE" },
-            { title: "2013-07-21 Václav Koubek", url: "https://youtu.be/9i1hOjCuAc8" },
-            { title: "2019-07-28 Ulrychovi a Javory Beat", url: "https://youtu.be/S4UvnxK5Kys" },
-            { title: "Prezentace Folkových prázdnin", url: "https://youtu.be/62RtdI5c6nQ" },
-            { title: "2022-07-26 Michal Prokop & Framus Five (Audio)", url: "https://youtu.be/y_ETWORClbE" },
-            { title: "2021-07-29 Iva Bittová & Mucha quartet (Audio)", url: "https://youtu.be/QVVsx0pRsxY" },
-            { title: "Klip FP 2025 do nemocnic", url: "https://youtu.be/20r7zPMmjgo" },
-            { title: "2024-07-31 Marie Puttnerová", url: "https://youtu.be/dHMrLtmwkzM" },
-            { title: "2025-08-01 Michal Vaněk 01-Zahořely", url: "https://youtu.be/iZKVEpsBvjo" },
-            { title: "2025-08-01 Michal Vaněk 02-Příteli ve Střelci", url: "https://youtu.be/l8IsdkI8Jbc" },
-            { title: "2025-08-01 Michal Vaněk 03-Než ti ránem", url: "https://youtu.be/EdBy7zQfoBA" },
-            { title: "2025-08-01 Michal Vaněk 04-Souřadnice", url: "https://youtu.be/2nX6yTa8EPg" },
-            { title: "2025-08-01 Michal Vaněk 05-Ráno", url: "https://youtu.be/YRX7tnR7ROs" }
-        ];
-        // Utility function to extract the main category/artist name from the title
-        function getCategoryName(title) {
-            // Remove date, numbering, and common suffixes (Audio) to get the main group
-            let cleanTitle = title
-                .replace(/^\d{4}[ -]+\d{2}[ -]+\d{2}[ -]+/g, '') // Remove YYYY-MM-DD
-                .replace(/^\d{4} - /, '') // Remove YYYY - 
-                .replace(/\s+\(Audio\)$/i, '') // Remove (Audio)
-                .replace(/\s*-\s*[\d]{2}[-\s]*[^\s]+.*$/, '') // Remove track numbers and subsequent titles (e.g., ' 01-Zahořely')
-                .replace(/:.*$/, '') // Remove everything after a colon (e.g., 'Josef Strubl: Český svaz žen...')
-                .trim();
-            
-            // Special handling for common groups/events
-            if (cleanTitle.includes("Hradišťan") || cleanTitle.includes("Wolfgang Saus")) return "Hradišťan a Přátelé";
-            if (cleanTitle.includes("Spirituál kvintet")) return "Spirituál Kvintet";
-            if (cleanTitle.includes("Traband") || cleanTitle.includes("Mirek Kemel")) return "Traband a Příbuzní";
-            if (cleanTitle.includes("Jarda Svoboda")) return "Jarda Svoboda a Přátelé člověka";
-            if (cleanTitle.includes("Vladimír Merta")) return "Vladimír Merta Trio/Hromosvod";
-            if (cleanTitle.includes("Ulrychovi") || cleanTitle.includes("Javory")) return "Hana a Petr Ulrychovi a Javory";
-            if (cleanTitle.includes("Galerie 12") || cleanTitle.includes("Lamr")) return "Galerie 12 / Vernisáže";
-            if (cleanTitle.includes("Blondýna & Cicvárek")) return "Blondýna & Cicvárek";
-            if (cleanTitle.includes("Michal Vaněk")) return "Michal Vaněk";
-            if (cleanTitle.includes("Iva Bittová")) return "Iva Bittová a Spolupracovníci";
-            if (cleanTitle.includes("Blue Effect") || cleanTitle.includes("Radim Hladík")) return "Radim Hladík a Blue Effect";
-            // If it starts with a year and no clear artist, group as 'Ostatní'
-            if (/^\d{4}/.test(cleanTitle)) {
-                let parts = cleanTitle.split(' ');
-                // Use the first 2-3 words as a likely artist name if not too long
-                if (parts.length > 1 && parts[0].length < 10) {
-                    cleanTitle = parts.slice(0, 2).join(' ');
-                }
-            }
-            // Fallback for general historical/event videos
-            if (cleanTitle.includes("Náměšť nad Oslavou") || cleanTitle.includes("O poklad Anežky České") || cleanTitle.includes("Zbraslav")) {
-                return "Historické/Místní Události";
-            }
-            if (cleanTitle.includes("Prezentace Folkových prázdnin") || cleanTitle.includes("Klip FP")) {
-                return "Folkové Prázdniny - Prezentace";
-            }
-            // Default: Use the cleaned title
-            return cleanTitle || "Ostatní (Neznámý Interpret)";
+        <h1>YouTube Odkazy: Hierarchický Seznam</h1> 
+        <div class="controls"> 
+            <input type="search" class="search" placeholder="Filtrovat podle názvu, data nebo autora..."/> 
+            <button class="sort-btn" data-sort="list-title" data-order="asc"> Řadit videa (Název A-Z) </button> 
+            <button class="sort-btn" data-sort="list-date-raw" data-order="desc"> Řadit videa (Datum sestupně) </button> 
+            <button class="sort-btn" id="sort-category-name-btn" data-order="asc"> Řadit skupiny (Název A-Z) </button>
+        </div> 
+        <div id="category-container"> </div>
+    </div> 
+    <script> 
+        // DATA: Strukturování dat poskytnutých uživatelem do požadované hierarchie. 
+        const rawData = [ 
+            { title: "2008-07-24 Wolfgang Saus a Hradišťan (Audio)", url: "https://youtu.be/HODbKG16eMI" }, 
+            { title: "2008-07-23 David Evans (Audio)", url: "https://youtu.be/tt9X89F0ZC4" }, 
+            { title: "2008-07-23 Hazmat Modine (Audio)", url: "https://youtu.be/eThuN_BzMF4" }, 
+            { title: "2008-07-23 Blues Session (Audio)", url: "https://youtu.be/vDhZctcwfmM" }, 
+            { title: "2008-07-22 Helene Blum & Harald Haugaard (Audio)", url: "https://youtu.be/0ZbBvyQvdeE" }, 
+            { title: "2017-07-28 Vladimír Mišík", url: "https://youtu.be/_VisQCNHDJM" }, 
+            { title: "2008-07-22 Druhá tráva (Audio)", url: "https://youtu.be/pUp1vPVCMJY" }, 
+            { title: "2022-07-29 Hana a Petr Ulrychovi a Javory (Audio)", url: "https://youtu.be/7Ix356oKr9c" }, 
+            { title: "2016-07-28 German Lopéz a Antonio Toledo", url: "https://youtu.be/RR3nDbzSTVA" }, 
+            { title: "2015-07-29 Dancas Ocultas", url: "https://youtu.be/2ngxlbE3nvk" }, 
+            { title: "2008-07-22 Tim Eriksen (Audio)", url: "https://youtu.be/IbaDHBrlCGY" }, 
+            { title: "2023-07-23 Mirek Kemel a hosté (Audio)", url: "https://youtu.be/L_qr5KtD1n4" }, 
+            { title: "2010-07-26 Žofie Kabelková (Audio)", url: "https://youtu.be/LoZGM9xyVkw" }, 
+            { title: "2024-07-31 Catrin Finch & Aoife Ni Brhiain", url: "https://youtu.be/AGGgfyFuJQU" }, 
+            { title: "2010-07-31 Jumping Drums (Audio)", url: "https://youtu.be/OHoT5DiOzJc" }, 
+            { title: "2015-07-29 AKA Trio", url: "https://youtu.be/Vmbl7s0r_RE" }, 
+            { title: "2008-07-21 Lucia Pulido a Marta Töpferová (Audio)", url: "https://youtu.be/WxBzWIDcowE" }, 
+            { title: "2008-07-21 Zuzana Novak (Audio)", url: "https://youtu.be/MpHdTOEoXsE" }, 
+            { title: "2008-07-21 Bashavel a Slávka Horvátová (Audio)", url: "https://youtu.be/urbTmsyOdp0" }, 
+            { title: "2008-07-20 Camile O´Sullivan (Audio)", url: "https://youtu.be/b-3dMEh5d1o" }, 
+            { title: "2008-07-20 Sergente Pepere (Audio)", url: "https://youtu.be/HonhegnXEfQ" }, 
+            { title: "2000 - O poklad Anežky České z Náměště nad Oslavou", url: "https://youtu.be/IR88sRFPZBg" }, 
+            { title: "1998 Krajina s Náměští nad Oslavou", url: "https://youtu.be/cOd4fjrYNS8" }, 
+            { title: "2007-07-30 Jablkoň & Galumpha - Popí rondo", url: "https://youtu.be/47pfx2BrmCY" }, 
+            { title: "2008-07-20 Iyasa (Audio)", url: "https://youtu.be/WEBjE2CIVtw" }, 
+            { title: "2008-07-19 Majorstuen", url: "https://youtu.be/pyDnVZWt8eA" }, 
+            { title: "2010-07-31 Hradišťan a Dizu Plaatjies", url: "https://youtu.be/Ob7ACKuvzbI" }, 
+            { title: "2016-07-26 Vladimír Merta & Jan Hrubý & Hromosvod (Audio)", url: "https://youtu.be/3eWwok_l8HY" }, 
+            { title: "2007-07-25 Interference (Audio)", url: "https://youtu.be/_AepJtOQuvo" }, 
+            { title: "2013-07-22 Zrní (Audio)", url: "https://youtu.be/DNhOoV-Ugf8" }, 
+            { title: "2024-08-03 Josef Strubl: Český svaz žen v akci", url: "https://youtu.be/Yg6Zlpo0ZO0" }, 
+            { title: "2023-08-27 Zlatka a Hanuš Lamrovi Vernisáž výstavy, Galerie 12, Náměšť nad Oslavou", url: "https://youtu.be/usOcrlB8TtU" }, 
+            { title: "2023-07-27 4 Lamři, 4 cesty - Galerie 12, Náměšť nad Oslavou", url: "https://youtu.be/tzHbJUUL9hE" }, 
+            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka 12 - Otče ohně", url: "https://youtu.be/cHLVG_9rAMM" }, 
+            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka 13 - Havrani", url: "https://youtu.be/GO7DJHys-ws" }, 
+            { title: "2019 08 03 Jarda Svoboda a Přátelé člověka 11 - Ismael", url: "https://youtu.be/QxK8WeRKVjk" }, 
+            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka 09 - Milovaný syn", url: "https://youtu.be/-oGZF7yji2g" }, 
+            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka 10 - Tak to mám rád", url: "https://youtu.be/HN5UTXnbcmw" }, 
+            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka 08 - Moje volba", url: "https://youtu.be/9FFrbAog4L8" }, 
+            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka 06 - Pozvedám své oči k horám", url: "https://youtu.be/skCrKza1SlY" }, 
+            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka 07 - Strach", url: "https://youtu.be/BKmMFoQJnlM" }, 
+            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka 05 - Slovo o slově", url: "https://youtu.be/9UaJwRoeK3o" }, 
+            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka 03-Jdu krajinou", url: "https://youtu.be/92Av1B_o0Ak" }, 
+            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka 04 -V hořícím keři", url: "https://youtu.be/XDQ5JHcNvDg" }, 
+            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka 02-Dej mi Bože dobrou ženu", url: "https://youtu.be/QvgSukVTZfE" }, 
+            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka 01-V jejích šlépějích", url: "https://youtu.be/QitHvA8EcC4" }, 
+            { title: "2025-08-17 ALEŠ SVOBODA - vernisáž SIXTYSIX - Galerie 12 - Náměšť nad Oslavou", url: "https://youtu.be/iYtbC6YlcTg" }, 
+            { title: "2021-08-18 František Skála - Galerie 12, vernisáž výstavy", url: "https://youtu.be/ERZNKJdb2Yg" }, 
+            { title: "2025-06-29 JAN ŠVANKMAJER vernisáž výstavy Galerie 12 Náměšť nad Oslavou", url: "https://youtu.be/GtiErQqmqyQ" }, 
+            { title: "2019-08-03 Jarda Svoboda a Přátelé člověka (Audio)", url: "https://youtu.be/zRjGhMs_c_w" }, 
+            { title: "2023-07-18 Jan Lamr: Na dotek - Vernisáž výstavy Galerie 12", url: "https://youtu.be/vOhb--GR1s0" }, 
+            { title: "2018-08-04 Zvíře jménem Podzim (Audio)", url: "https://youtu.be/B-2dzlZ1uc4" }, 
+            { title: "2018-08-04 Zvíře jménem Podzim (Audio)", url: "https://youtu.be/78u3QENnrrI" }, 
+            { title: "2008-07-24 Hradišťan", url: "https://youtu.be/CGAkbv8ysqE" }, 
+            { title: "2016-07-28 Michal Prokop - Luboš Andršt - Jan Hrubý (Audio)", url: "https://youtu.be/9y1NC6gcfCw" }, 
+            { title: "2010-07-29 Martina Trchová (Audio)", url: "https://youtu.be/gAOBI6FK-ZA" }, 
+            { title: "2022-07-26 Vladimír Merta Trio", url: "https://youtu.be/G3okXtCYmfU" }, 
+            { title: "2018-08-01 Spirituál kvintet 06-Za všechno může lhaní (Audio)", url: "https://youtu.be/e70nH8okquo" }, 
+            { title: "2018-08-01 Spirituál kvintet 16-Pocestný (Audio)", url: "https://youtu.be/YdZ4eLn5290" }, 
+            { title: "2018-08-01 Spirituál kvintet 15-Jednou budem dál (Audio)", url: "https://youtu.be/SUbNc64xau4" }, 
+            { title: "2018-08-01 Spirituál kvintet 14-Krásný rána (Audio)", url: "https://youtu.be/D9VyR0ACXXc" }, 
+            { title: "2018-08-01 Spirituál kvintet 13-Vlk a beránek (Audio)", url: "https://youtu.be/UQaLoWYpCMU" }, 
+            { title: "2018-08-01 Spirituál kvintet 12-Růžička (Audio)", url: "https://youtu.be/sUo97J0afu0" }, 
+            { title: "2018-08-01 Spirituál kvintet 11-Starý příběh (Audio)", url: "https://youtu.be/TgKJ8erkTa4" }, 
+            { title: "2018-08-01 Spirituál kvintet 10-Širý proud (Audio)", url: "https://youtu.be/U39o-KD-1j8" }, 
+            { title: "2018-08-01 Spirituál kvintet 09-Batalion (Audio)", url: "https://youtu.be/ZWtYbul31DY" }, 
+            { title: "2018-08-01 Spirituál kvintet 08-Žízeň (Audio)", url: "https://youtu.be/Mff6APjMwQo" }, 
+            { title: "2018-08-01 Spirituál kvintet 07-Zelené pláně (Audio)", url: "https://youtu.be/UftFgZWAinU" }, 
+            { title: "2018-08-01 Spirituál kvintet 01-Svět s náma houpá (Audio)", url: "https://youtu.be/CFgsiZ-UaXU" }, 
+            { title: "2018-08-01 Spirituál kvintet 02-Do ráje nevede most (Audio)", url: "https://youtu.be/MVHavMtn1eY" }, 
+            { title: "2018-08-01 Spirituál kvintet 03-Babylonská věž (Audio)", url: "https://youtu.be/28WC-3yG3Xw" }, 
+            { title: "2018-08-01 Spirituál kvintet 04-Tak jen pojď (Audio)", url: "https://youtu.be/qAjYFikiuxQ" }, 
+            { title: "2018-08-01 Spirituál kvintet 05 Zahrady v Moorlough Shore Audio", url: "https://youtu.be/C_oCsvhI-dg" }, 
+            { title: "2025-07-30 TOPOL - Jen to smysl má", url: "https://youtu.be/Lm8QjzioquU" }, 
+            { title: "2021-07-27 Radim Zenkl a Ondra Kozák", url: "https://youtu.be/kGVHR3VX7w0" }, 
+            { title: "2025-07-29 Zahranice 10-Delfín - Premiéra", url: "https://youtu.be/G6z9i4Gm8U4" }, 
+            { title: "2010-07-30 Docuku (Audio)", url: "https://youtu.be/96k7CieQ4yw" }, 
+            { title: "2020-07-30 Iva Bittová & Babačka & Ivo Viktorín & Vladimír Václavek", url: "https://youtu.be/Znlc7_jnUJs" }, 
+            { title: "2014-08-02 Traband - Sáro (Audio)", url: "https://youtu.be/6l6YkyB1fZU" }, 
+            { title: "2014-08-02 Traband - Přijíždí posel (Audio)", url: "https://youtu.be/pzhWQWemh24" }, 
+            { title: "2014-08-02 Traband - Tenhleten den (Audio)", url: "https://youtu.be/6jysEYot9y4" }, 
+            { title: "2014-08-02 Traband - Černej pasažér (Audio)", url: "https://youtu.be/7Vq4Xm8uw2k" }, 
+            { title: "2014-08-02 Traband - Indiáni ve městě (Audio)", url: "https://youtu.be/OmsWlznh9XA" }, 
+            { title: "2014-08-02 Traband - Tichý muž (Audio)", url: "https://youtu.be/glIuZ_duS4U" }, 
+            { title: "2014-08-02 Traband - Pokaždé, když přicházíš (Audio)", url: "https://youtu.be/yPyOgGEdj-g" }, 
+            { title: "2014-08-02 Traband - Do ticha (Audio)", url: "https://youtu.be/QFoIDms_xp0" }, 
+            { title: "2014-08-02 Traband - Černý kafe (Audio)", url: "https://youtu.be/dg2kCIyu5B8" }, 
+            { title: "2014-08-02 Traband - Mluv se mnou, miláčku", url: "https://youtu.be/t42O7B8fs_Y" }, 
+            { title: "2014-08-02 Traband - Kantorovy varhany", url: "https://youtu.be/UxjBMdq8t_s" }, 
+            { title: "2014-08 02 Traband - Kabát z roku 66 (Audio)", url: "https://youtu.be/nfhiRXA8l-c" }, 
+            { title: "2014-08-02 Traband - Marie! (Audio)", url: "https://youtu.be/psjHJ5gjjj8" }, 
+            { title: "2013-07-21 Ukulele orchestra jako Brno", url: "https://youtu.be/yf80kIxyxlo" }, 
+            { title: "2018-08-01 Spirituál kvintet (Audio)", url: "https://youtu.be/Q13D4hbqBzQ" }, 
+            { title: "2015-07-27 Marián Varga (Audio)", url: "https://youtu.be/IuhwB7mOG1g" }, 
+            { title: "2014-07-31 Bezobratři (Audio)", url: "https://youtu.be/AZ8AmmjuQLE" }, 
+            { title: "2017-07-27 Kateřina Garcia a Malina Brothers", url: "https://youtu.be/K-T1duqJLsA" }, 
+            { title: "2021-07-27 Radim Zenkl & Ondřej Kozák", url: "https://youtu.be/xyepCBoKjQU" }, 
+            { title: "2014-08-02 Traband + Mirek Kemel (Audio)", url: "https://youtu.be/gbkYugfYo9Y" }, 
+            { title: "Zbraslav a Švédové", url: "https://youtu.be/G4jOWJ98NyQ" }, 
+            { title: "2015-07-28 Iva Bittová a Clarinet Factory", url: "https://youtu.be/7lNWB5zIb-8" }, 
+            { title: "2017-07-27 Jiří Slavík: Mateřština", url: "https://youtu.be/pqvetdTYGgc" }, 
+            { title: "2025-07-30 Blondýna & Cicvárek 11-Odvaha", url: "https://youtu.be/qx4IvylfFVM" }, 
+            { title: "2025-07-30 Blondýna & Cicvárek 13-Ostrovní romance", url: "https://youtu.be/ecZ86oOfv0c" }, 
+            { title: "2025-07-30 Blondýna & Cicvárek 14-Balada o poslední bouři", url: "https://youtu.be/fMfiiqwfdns" }, 
+            { title: "2025-07-30 Blondýna & Cicvárek 08-Viktorka", url: "https://youtu.be/mRahWI2jssA" }, 
+            { title: "2025-07-30 Blondýna & Cicvárek 01-Volej, volej, volej, volej, volej!", url: "https://youtu.be/3721VqJVK9k" }, 
+            { title: "2025-07-30 Blondýna & Cicvárek 10-Vítr", url: "https://youtu.be/yHyey3ZxkvY" }, 
+            { title: "2025-07-30 Blondýna & Cicvárek 09-Klavír ve křoví", url: "https://youtu.be/F9vZ81R15qQ" }, 
+            { title: "2025-07-30 Blondýna & Cicvárek 07-Na cestě", url: "https://youtu.be/5pvJQw5RScw" }, 
+            { title: "2025-07-30 Blondýna & Cicvárek 06-Šípková Růženka", url: "https://youtu.be/qGKDLFpgh6s" }, 
+            { title: "2025-07-30 Blondýna & Cicvárek 05-Lokálka", url: "https://youtu.be/Y-qOUXbRp9o" }, 
+            { title: "2025-07-30 Blondýna & Cicvárek 04-Žbluňk", url: "https://youtu.be/QOQ7CiRqRfQ" }, 
+            { title: "2025-07-30 Blondýna & Cicvárek 03-Banánový blues", url: "https://youtu.be/tB3Dnpk1lww" }, 
+            { title: "2025-07-30 Blondýna & Cicvárek 02-Dřív než", url: "https://youtu.be/j_pTiVZ3ls4" }, 
+            { title: "2025-07-30 Blondýna & Cicvárek 01-Volej, volej, volej, volej, volej!", url: "https://youtu.be/EVCKQRy8OLE" }, 
+            { title: "2025-07-30 Blondýna & Cicvárek 12-Holí na pankáče", url: "https://youtu.be/R2bBYwpezsw" }, 
+            { title: "2025-07-30 Blondýna & Cicvárek 15-Mercedes Benz", url: "https://youtu.be/FeRPQi9sUMM" }, 
+            { title: "2022-07-26 Vladmír Merta Trio", url: "https://youtu.be/fmezQRR4SuE" }, 
+            { title: "2026-07-25 Radim Hladík a Blue Effect (Audio)", url: "https://youtu.be/hf_Ra4ugT1E" }, 
+            { title: "2016-07-25 Radim Hladík a Blue Effect (Audio)", url: "https://youtu.be/8F8kQlpsZRE" }, 
+            { title: "2013-07-21 Václav Koubek", url: "https://youtu.be/9i1hOjCuAc8" }, 
+            { title: "2019-07-28 Ulrychovi a Javory Beat", url: "https://youtu.be/S4UvnxK5Kys" }, 
+            { title: "Prezentace Folkových prázdnin", url: "https://youtu.be/62RtdI5c6nQ" }, 
+            { title: "2022-07-26 Michal Prokop & Framus Five (Audio)", url: "https://youtu.be/y_ETWORClbE" }, 
+            { title: "2021-07-29 Iva Bittová & Mucha quartet (Audio)", url: "https://youtu.be/QVVsx0pRsxY" }, 
+            { title: "Klip FP 2025 do nemocnic", url: "https://youtu.be/20r7zPMmjgo" }, 
+            { title: "2024-07-31 Marie Puttnerová", url: "https://youtu.be/dHMrLtmwkzM" }, 
+            { title: "2025-08-01 Michal Vaněk 01-Zahořely", url: "https://youtu.be/iZKVEpsBvjo" }, 
+            { title: "2025-08-01 Michal Vaněk 02-Příteli ve Střelci", url: "https://youtu.be/l8IsdkI8Jbc" }, 
+            { title: "2025-08-01 Michal Vaněk 03-Než ti ránem", url: "https://youtu.be/EdBy7zQfoBA" }, 
+            { title: "2025-08-01 Michal Vaněk 04-Souřadnice", url: "https://youtu.be/2nX6yTa8EPg" }, 
+            { title: "2025-08-01 Michal Vaněk 05-Ráno", url: "https://youtu.be/YRX7tnR7ROs" } 
+        ]; 
+
+        // Funkce pro extrakci ID videa z URL - POUŽITO PRO NÁHLEDY
+        function getVideoId(url) {
+            const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            // Zajišťuje, že se jedná o standardní 11místné ID
+            return (match && match[2].length === 11) ? match[2] : null; 
         }
-        // Pre-process data and group by category
-        function groupData(data) {
-            return data.reduce((acc, item) => {
-                // Try to extract date for sorting (YYYY-MM-DD or YYYY)
-                const dateMatch = item.title.match(/(\d{4}[ -]\d{2}[ -]\d{2}|\d{4})/);
-                const dateRaw = dateMatch ? dateMatch[0].replace(/ /g, '-').trim() : '0000-00-00';
+
+        // Utility function to extract the main category/artist name from the title 
+        function getCategoryName(title) { 
+            // Váš původní kód pro kategorizaci (beze změn)
+            let cleanTitle = title 
+                .replace(/^\d{4}[ -]+\d{2}[ -]+\d{2}[ -]+/g, '') 
+                .replace(/^\d{4} - /, '') 
+                .replace(/\s+\(Audio\)$/i, '') 
+                .replace(/\s*-\s*[\d]{2}[-\s]*[^\s]+.*$/, '') 
+                .replace(/:.*$/, '') 
+                .trim(); 
+            if (cleanTitle.includes("Hradišťan") || cleanTitle.includes("Wolfgang Saus")) return "Hradišťan a Přátelé"; 
+            if (cleanTitle.includes("Spirituál kvintet")) return "Spirituál Kvintet"; 
+            if (cleanTitle.includes("Traband") || cleanTitle.includes("Mirek Kemel")) return "Traband a Příbuzní"; 
+            if (cleanTitle.includes("Jarda Svoboda")) return "Jarda Svoboda a Přátelé člověka"; 
+            if (cleanTitle.includes("Vladimír Merta")) return "Vladimír Merta Trio/Hromosvod"; 
+            if (cleanTitle.includes("Ulrychovi") || cleanTitle.includes("Javory")) return "Hana a Petr Ulrychovi a Javory"; 
+            if (cleanTitle.includes("Galerie 12") || cleanTitle.includes("Lamr")) return "Galerie 12 / Vernisáže"; 
+            if (cleanTitle.includes("Blondýna & Cicvárek")) return "Blondýna & Cicvárek"; 
+            if (cleanTitle.includes("Michal Vaněk")) return "Michal Vaněk"; 
+            if (cleanTitle.includes("Iva Bittová")) return "Iva Bittová a Spolupracovníci"; 
+            if (cleanTitle.includes("Blue Effect") || cleanTitle.includes("Radim Hladík")) return "Radim Hladík a Blue Effect"; 
+            if (/^\d{4}/.test(cleanTitle)) { 
+                let parts = cleanTitle.split(' '); 
+                if (parts.length > 1 && parts[0].length < 10) { 
+                    cleanTitle = parts.slice(0, 2).join(' '); 
+                } 
+            } 
+            if (cleanTitle.includes("Náměšť nad Oslavou") || cleanTitle.includes("O poklad Anežky České") || cleanTitle.includes("Zbraslav")) { return "Historické/Místní Události"; } 
+            if (cleanTitle.includes("Prezentace Folkových prázdnin") || cleanTitle.includes("Klip FP")) { return "Folkové Prázdniny - Prezentace"; } 
+            return cleanTitle || "Ostatní (Neznámý Interpret)"; 
+        } 
+
+        // Pre-process data and group by category 
+        function groupData(data) { 
+            return data.reduce((acc, item) => { 
+                const dateMatch = item.title.match(/(\d{4}[ -]\d{2}[ -]\d{2}|\d{4})/); 
+                const dateRaw = dateMatch ? dateMatch[0].replace(/ /g, '-').trim() : '0000-00-00'; 
                 
-                // Add fields required for List.js sorting
-                item.dateRaw = dateRaw;
-                item.listTitle = item.title.replace(dateRaw, '').trim(); // Title without date prefix for A-Z sort
-                item.listDate = dateRaw; // Formatted date for display
-                const categoryName = getCategoryName(item.title);
-                if (!acc[categoryName]) {
-                    acc[categoryName] = []; // Inicializace pole pro novou kategorii
-                }
-                acc[categoryName].push(item);
-                return acc;
-            }, {});
-        }
-        const groupedData = groupData(rawData);
-        const categoryContainer = document.getElementById('category-container');
-        let listInstances = {}; // Pro uložení List.js instancí pro každou kategorii
-        // Funkce pro vykreslení celé struktury seznamu
-        function renderList() {
-            categoryContainer.innerHTML = ''; // Vyčistit předchozí obsah
-            listInstances = {}; // Resetovat instance
-            const categoryNames = Object.keys(groupedData);
-            // Seřadit kategorie podle názvu na začátku (A-Z)
-            categoryNames.sort((a, b) => a.localeCompare(b, 'cs'));
-            categoryNames.forEach(categoryName => {
-                const categoryData = groupedData[categoryName];
-                // Vytvořit bezpečné ID pro HTML
-                const categoryId = 'category-' + categoryName.replace(/\s/g, '-').replace(/[^\w-]/g, '').toLowerCase();
-                // 1. Vytvořit vnější obal kategorie
-                const categoryEl = document.createElement('div');
-                categoryEl.className = 'category-item';
-                // Ve výchozím nastavení skládáme kategorie pro čistší zobrazení
-                categoryEl.classList.add('collapsed');
-                // 2. Vytvořit hlavičku pro přepínání
-                categoryEl.innerHTML = `
+                // Přidání polí pro řazení a náhled
+                item.dateRaw = dateRaw; 
+                item.listTitle = item.title.replace(dateRaw, '').trim(); 
+                item.listDate = dateRaw; 
+                item.videoId = getVideoId(item.url); // ID videa
+                item.thumbnailUrl = item.videoId ? `https://img.youtube.com/vi/${item.videoId}/mqdefault.jpg` : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; // Placeholder pro případ chyby
+
+                const categoryName = getCategoryName(item.title); 
+                if (!acc[categoryName]) { 
+                    acc[categoryName] = []; 
+                } 
+                acc[categoryName].push(item); 
+                return acc; 
+            }, {}); 
+        } 
+        
+        const groupedData = groupData(rawData); 
+        const categoryContainer = document.getElementById('category-container'); 
+        let listInstances = {}; 
+
+        function renderList() { 
+            categoryContainer.innerHTML = ''; 
+            listInstances = {}; 
+            const categoryNames = Object.keys(groupedData); 
+            categoryNames.sort((a, b) => a.localeCompare(b, 'cs')); 
+            
+            categoryNames.forEach(categoryName => { 
+                const categoryData = groupedData[categoryName]; 
+                const categoryId = 'category-' + categoryName.replace(/\s/g, '-').replace(/[^\w-]/g, '').toLowerCase(); 
+                
+                const categoryEl = document.createElement('div'); 
+                categoryEl.className = 'category-item'; 
+                categoryEl.classList.add('collapsed'); 
+
+                // HLAVIČKA
+                categoryEl.innerHTML = ` 
                     <div class="category-header" data-category-id="${categoryId}">
-                        <h2 class="category-name">${categoryName} (${categoryData.length})</h2>
-                        <span class="category-toggle">▼</span>
-                    </div>
-                    <div id="${categoryId}">
-                        <ul class="list">
-                            </ul>
-                    </div>
-                `;
-                categoryContainer.appendChild(categoryEl);
-                // Přidat posluchač události pro skládání/rozkládání
-                categoryEl.querySelector('.category-header').addEventListener('click', () => {
-                    categoryEl.classList.toggle('collapsed');
-                });
-                // 3. Připravit data pro List.js
-                const listEl = categoryEl.querySelector('.list');
-                const listData = categoryData.map(item => ({
-                    'list-title': `<a href="${item.url}" target="_blank" rel="noopener noreferrer">${item.title}</a>`,
-                    'list-date': item.listDate,
-                    'list-date-raw': item.dateRaw, // Skryté pole pro řazení
-                }));
-                // 4. Inicializovat List.js
-                listInstances[categoryName] = new List(categoryId, {
-                    valueNames: ['list-title', 'list-date', 'list-date-raw'],
-                    item: `<li class="list-item">
-                        <span class="list-title"></span>
-                        <span class="list-date"></span>
-                    </li>`
-                }, listData);
-                // Počáteční řazení podle data sestupně
-                listInstances[categoryName].sort('list-date-raw', { order: 'desc' });
-            });
-        }
-        // Funkce pro obsluhu globálního vyhledávání napříč všemi List.js instancemi
-        function handleSearch(e) {
-            const query = e.target.value.toLowerCase();
-            const categoryItems = document.querySelectorAll('.category-item');
-            categoryItems.forEach(categoryEl => {
-                // Extrahovat název kategorie z hlavičky
-                const categoryNameMatch = categoryEl.querySelector('.category-name').textContent.match(/(.*) \(\d+\)/);
-                if (!categoryNameMatch) return; // Ochrana proti chybě
-                const categoryName = categoryNameMatch[1].trim();
-                const list = listInstances[categoryName];
-                if (list) {
-                    list.search(query);
-                    
-                    // Logika pro skrytí kategorie, pokud jsou všechny její položky odfiltrovány
-                    const allItems = list.items.length;
-                    const visibleItems = list.matchingItems.length;
-                    if (visibleItems === 0 && allItems > 0) {
-                        categoryEl.classList.add('hidden');
-                    } else {
-                        categoryEl.classList.remove('hidden');
-                        // Rozbalit kategorii, pokud je v ní viditelná položka a uživatel vyhledává
-                        if (query.length > 0 && visibleItems > 0 && categoryEl.classList.contains('collapsed')) {
-                            categoryEl.classList.remove('collapsed');
-                        }
-                    }
-                }
-            });
-        }
-        // Funkce pro obsluhu tlačítek pro řazení (pro jednotlivé seznamy videí)
-        function setupSortButtons() {
-            document.querySelectorAll('.sort-btn[data-sort]').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const sortKey = e.target.getAttribute('data-sort');
-                    const currentOrder = e.target.getAttribute('data-order');
-                    const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
-                    
-                    // Aktualizovat stav tlačítka
-                    e.target.setAttribute('data-order', newOrder);
-                    
-                    if (sortKey === 'list-title') {
-                        e.target.textContent = `Řadit videa (Název ${newOrder === 'asc' ? 'A-Z' : 'Z-A'})`;
-                    } else if (sortKey === 'list-date-raw') {
-                        e.target.textContent = `Řadit videa (Datum ${newOrder === 'desc' ? 'sestupně' : 'vzestupně'})`;
-                    }
-                    
-                    // Použít řazení na všechny List.js instance
-                    Object.values(listInstances).forEach(list => {
-                        list.sort(sortKey, { order: newOrder });
-                    });
-                });
-            });
-            // Speciální tlačítko pro řazení samotných kategorií
-            document.getElementById('sort-category-name-btn').addEventListener('click', (e) => {
-                const currentOrder = e.target.getAttribute('data-order');
-                const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
-                e.target.setAttribute('data-order', newOrder);
-                e.target.textContent = `Řadit skupiny (Název ${newOrder === 'asc' ? 'A-Z' : 'Z-A'})`;
-                const container = document.getElementById('category-container');
-                const categories = Array.from(container.children);
+                        <h2 class="category-name">${categoryName} (${categoryData.length})</h2> 
+                        <span class="category-toggle">▼</span> 
+                    </div> 
+                    <div id="${categoryId}" class="list-container">
+                        <ul class="list"> 
+                        </ul> 
+                    </div> `;
+                categoryContainer.appendChild(categoryEl); 
                 
-                categories.sort((a, b) => {
-                    // Získáme název kategorie bez počtu položek (čísla v závorkách)
-                    const nameA = a.querySelector('.category-name').textContent.match(/(.*) \(\d+\)/)[1].trim();
-                    const nameB = b.querySelector('.category-name').textContent.match(/(.*) \(\d+\)/)[1].trim();
-                    
-                    if (newOrder === 'asc') {
-                        return nameA.localeCompare(nameB, 'cs');
-                    } else {
-                        return nameB.localeCompare(nameA, 'cs');
-                    }
-                });
-                // Přidat seřazené elementy zpět do kontejneru
-                categories.forEach(category => container.appendChild(category));
-            });
-        }
-        // Inicializace po načtení okna
-        window.onload = function() {
-            renderList();
-            setupSortButtons();
+                categoryEl.querySelector('.category-header').addEventListener('click', () => { 
+                    categoryEl.classList.toggle('collapsed'); 
+                }); 
+
+                // DATA PRO LIST.JS A NOVÁ ŠABLONA S NÁHLEDEM
+                const listEl = categoryEl.querySelector('.list'); 
+                const listData = categoryData.map(item => ({ 
+                    'list-title': item.title, // Ponecháme plný název, List.js jej vloží do .list-title
+                    'list-date': item.listDate, 
+                    'list-date-raw': item.dateRaw, 
+                    'list-url': item.url, // URL pro proklik celého elementu
+                    'list-thumbnail-src': item.thumbnailUrl // URL náhledu pro atribut 'src'
+                })); 
+
+                listInstances[categoryName] = new List(categoryId, { 
+                    valueNames: [
+                        'list-title', 
+                        'list-date', 
+                        'list-date-raw',
+                        { name: 'list-url', attr: 'href' }, // Mapování URL na 'href' obalujícího A tagu
+                        { name: 'list-thumbnail', attr: 'src' } // Mapování URL náhledu na 'src' IMG tagu
+                    ], 
+                    // NOVÁ ŠABLONA: Celá položka je odkaz, obsahuje náhled a kontejner s textem
+                    item: `
+                        <li class="list-item"> 
+                            <a class="list-link-wrapper" href="" target="_blank" rel="noopener noreferrer" data-name="list-url">
+                                <div class="list-thumbnail-container">
+                                    <img class="list-thumbnail" data-name="list-thumbnail" alt="Náhled videa" />
+                                </div>
+                                <div class="list-content">
+                                    <span class="list-title"></span> 
+                                    <span class="list-date"></span> 
+                                </div>
+                            </a>
+                        </li>` 
+                }, listData); 
+
+                listInstances[categoryName].sort('list-date-raw', { order: 'desc' }); 
+            }); 
+        } 
+
+        // Funkce pro obsluhu globálního vyhledávání (beze změn)
+        function handleSearch(e) { 
+            const query = e.target.value.toLowerCase(); 
+            const categoryItems = document.querySelectorAll('.category-item');
             
-            // Nastavit posluchač pro vyhledávání
-            document.querySelector('.search').addEventListener('keyup', handleSearch);
-        };
-    </script>
-</body>
+            categoryItems.forEach(categoryEl => { 
+                const categoryNameMatch = categoryEl.querySelector('.category-name').textContent.match(/(.*) \(\d+\)/); 
+                if (!categoryNameMatch) return; 
+                const categoryName = categoryNameMatch[1].trim(); 
+                const list = listInstances[categoryName]; 
+                
+                if (list) { 
+                    list.search(query); 
+                    const allItems = list.items.length; 
+                    const visibleItems = list.matchingItems.length; 
+                    
+                    if (visibleItems === 0 && allItems > 0) { 
+                        categoryEl.classList.add('hidden'); 
+                    } else { 
+                        categoryEl.classList.remove('hidden'); 
+                        if (query.length > 0 && visibleItems > 0 && categoryEl.classList.contains('collapsed')) { 
+                            categoryEl.classList.remove('collapsed'); 
+                        } 
+                    } 
+                } 
+            }); 
+        } 
+
+        // Funkce pro obsluhu tlačítek pro řazení (beze změn)
+        function setupSortButtons() { 
+            document.querySelectorAll('.sort-btn[data-sort]').forEach(button => { 
+                button.addEventListener('click', (e) => { 
+                    const sortKey = e.target.getAttribute('data-sort'); 
+                    const currentOrder = e.target.getAttribute('data-order'); 
+                    const newOrder = currentOrder === 'asc' ? 'desc' : 'asc'; 
+                    
+                    e.target.setAttribute('data-order', newOrder); 
+                    if (sortKey === 'list-title') { 
+                        e.target.textContent = `Řadit videa (Název ${newOrder === 'asc' ? 'A-Z' : 'Z-A'})`; 
+                    } else if (sortKey === 'list-date-raw') { 
+                        e.target.textContent = `Řadit videa (Datum ${newOrder === 'desc' ? 'sestupně' : 'vzestupně'})`; 
+                    } 
+                    
+                    Object.values(listInstances).forEach(list => { 
+                        list.sort(sortKey, { order: newOrder }); 
+                    }); 
+                }); 
+            }); 
+
+            document.getElementById('sort-category-name-btn').addEventListener('click', (e) => { 
+                const currentOrder = e.target.getAttribute('data-order'); 
+                const newOrder = currentOrder === 'asc' ? 'desc' : 'asc'; 
+                e.target.setAttribute('data-order', newOrder); 
+                e.target.textContent = `Řadit skupiny (Název ${newOrder === 'asc' ? 'A-Z' : 'Z-A'})`; 
+                
+                const container = document.getElementById('category-container'); 
+                const categories = Array.from(container.children); 
+                
+                categories.sort((a, b) => { 
+                    const nameA = a.querySelector('.category-name').textContent.match(/(.*) \(\d+\)/)[1].trim(); 
+                    const nameB = b.querySelector('.category-name').textContent.match(/(.*) \(\d+\)/)[1].trim(); 
+                    
+                    if (newOrder === 'asc') { 
+                        return nameA.localeCompare(nameB, 'cs'); 
+                    } else { 
+                        return nameB.localeCompare(nameA, 'cs'); 
+                    } 
+                }); 
+                
+                categories.forEach(category => container.appendChild(category)); 
+            }); 
+        } 
+
+        // Inicializace po načtení okna 
+        window.onload = function() { 
+            renderList(); 
+            setupSortButtons(); 
+            document.querySelector('.search').addEventListener('keyup', handleSearch); 
+        }; 
+    </script> 
+</body> 
 </html>
